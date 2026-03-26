@@ -2,323 +2,621 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FieldStack — GC Command Center</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FieldStack</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --ink: #1a1814;
-    --ink2: #4a4640;
-    --ink3: #8a8580;
-    --paper: #f5f2ed;
-    --paper2: #ede9e2;
-    --paper3: #e2ddd5;
-    --rule: #d4cfc7;
-    --amber: #c8760a;
-    --amber-bg: #fdf3e3;
-    --green: #2d6a4f;
-    --green-bg: #e8f5ee;
-    --red: #9b2335;
-    --red-bg: #fceef0;
-    --blue: #1a4f7a;
-    --blue-bg: #e8f0f8;
-    --purple: #4a2d7a;
-    --purple-bg: #f0ebf8;
-  }
+:root {
+  --ink: #1a1814;
+  --ink2: #4a4640;
+  --ink3: #8a8580;
+  --paper: #f5f2ed;
+  --paper2: #ede9e2;
+  --paper3: #e2ddd5;
+  --rule: #d4cfc7;
+  --amber: #c8760a;
+  --amber-bg: #fdf3e3;
+  --green: #2d6a4f;
+  --green-bg: #e8f5ee;
+  --red: #9b2335;
+  --red-bg: #fceef0;
+  --blue: #1a4f7a;
+  --blue-bg: #e8f0f8;
+  --purple: #4a2d7a;
+  --purple-bg: #f0ebf8;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
 
-  body {
-    font-family: 'DM Mono', monospace;
-    background: var(--paper);
-    color: var(--ink);
-    min-height: 100vh;
-    font-size: 13px;
-  }
+body {
+  font-family: 'DM Mono', monospace;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 14px;
+}
 
-  /* Layout */
-  .app { display: grid; grid-template-columns: 260px 1fr; grid-template-rows: 52px 1fr; height: 100vh; overflow: hidden; }
+/* ── Shell ── */
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
 
-  /* Header */
-  .header {
-    grid-column: 1 / -1;
-    background: var(--ink);
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 24px;
-    border-bottom: 1px solid #333;
-  }
-  .logo { font-family: 'Fraunces', serif; font-size: 18px; color: var(--paper); font-weight: 300; letter-spacing: -0.02em; }
-  .logo span { color: var(--amber); font-style: italic; }
-  .header-meta { font-size: 11px; color: #666; letter-spacing: 0.08em; }
+/* ── Header ── */
+.header {
+  background: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 52px;
+  flex-shrink: 0;
+  gap: 12px;
+}
+.logo {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  color: var(--paper);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.logo span { color: var(--amber); font-style: italic; }
 
-  /* Sidebar */
-  .sidebar {
-    background: var(--paper2);
-    border-right: 1px solid var(--rule);
-    display: flex; flex-direction: column;
-    overflow: hidden;
-  }
+.job-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #2a2520;
+  border: 1px solid #3a3530;
+  border-radius: 20px;
+  padding: 5px 12px 5px 8px;
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+  max-width: 220px;
+}
+.job-pill-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+  flex-shrink: 0;
+}
+.job-pill-name {
+  font-size: 12px;
+  color: var(--paper);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.job-pill-arrow {
+  font-size: 10px;
+  color: #666;
+  margin-left: auto;
+  flex-shrink: 0;
+}
 
-  .sidebar-section { padding: 16px; border-bottom: 1px solid var(--rule); }
-  .sidebar-label { font-size: 10px; color: var(--ink3); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+.header-icon-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: #2a2520;
+  border: none;
+  color: #999;
+  font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+}
+.notif-badge {
+  position: absolute;
+  top: 2px; right: 2px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  border: 1.5px solid var(--ink);
+  display: none;
+}
+.notif-badge.show { display: block; }
 
-  .job-list { display: flex; flex-direction: column; gap: 2px; }
-  .job-item {
-    padding: 8px 10px; border-radius: 4px; cursor: pointer;
-    display: flex; align-items: center; justify-content: space-between;
-    transition: background 0.15s;
-  }
-  .job-item:hover { background: var(--paper3); }
-  .job-item.active { background: var(--ink); color: var(--paper); }
-  .job-name { font-size: 12px; font-weight: 500; }
-  .job-count { font-size: 10px; color: var(--ink3); background: var(--paper3); padding: 1px 6px; border-radius: 10px; }
-  .job-item.active .job-count { background: #333; color: #999; }
+/* ── Tab bar ── */
+.tabs {
+  display: flex;
+  background: var(--ink);
+  border-top: 1px solid #2a2520;
+  flex-shrink: 0;
+}
+.tab {
+  flex: 1;
+  padding: 8px 4px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #555;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: color 0.15s;
+}
+.tab.active { color: var(--amber); }
+.tab-icon { font-size: 20px; line-height: 1; }
 
-  .add-job-btn {
-    width: 100%; padding: 7px; border: 1px dashed var(--rule); border-radius: 4px;
-    background: none; color: var(--ink3); font-family: 'DM Mono', monospace;
-    font-size: 11px; cursor: pointer; margin-top: 8px; letter-spacing: 0.04em;
-    transition: all 0.15s;
-  }
-  .add-job-btn:hover { border-color: var(--ink3); color: var(--ink); }
+/* ── Screens ── */
+.screen { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+.screen.active { display: flex; }
 
-  .filter-list { display: flex; flex-direction: column; gap: 2px; }
-  .filter-item {
-    padding: 6px 10px; border-radius: 4px; cursor: pointer;
-    display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink2);
-    transition: background 0.15s;
-  }
-  .filter-item:hover { background: var(--paper3); }
-  .filter-item.active { color: var(--ink); font-weight: 500; }
-  .filter-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+/* ── INBOX screen ── */
+.inbox-screen {
+  display: flex;
+  flex-direction: column;
+}
 
-  /* Main */
-  .main { display: grid; grid-template-rows: 1fr 180px; overflow: hidden; }
+/* Feed (scrollable) */
+.feed {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-  /* Doc feed */
-  .doc-feed { overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
+.feed-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink3);
+  text-align: center;
+  padding: 32px;
+  gap: 8px;
+}
+.feed-empty-icon {
+  font-size: 40px;
+  opacity: 0.3;
+}
+.feed-empty-text { font-size: 13px; line-height: 1.6; }
 
-  .feed-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
-  .feed-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 300; letter-spacing: -0.02em; }
-  .feed-count { font-size: 11px; color: var(--ink3); }
+/* Doc cards */
+.doc-card {
+  background: white;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 12px 14px;
+  animation: cardIn 0.25s ease;
+  flex-shrink: 0;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-  /* Doc card */
-  .doc-card {
-    background: white; border: 1px solid var(--rule); border-radius: 6px;
-    padding: 14px 16px; display: grid; grid-template-columns: auto 1fr auto;
-    gap: 12px; align-items: start;
-    animation: slideIn 0.3s ease;
-  }
-  @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.doc-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.doc-card-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
 
-  .doc-type-badge {
-    padding: 3px 8px; border-radius: 3px; font-size: 10px; font-weight: 500;
-    letter-spacing: 0.06em; white-space: nowrap; margin-top: 2px;
-  }
-  .type-bid      { background: var(--blue-bg);   color: var(--blue); }
-  .type-email    { background: var(--purple-bg);  color: var(--purple); }
-  .type-text     { background: var(--green-bg);   color: var(--green); }
-  .type-invoice  { background: var(--amber-bg);   color: var(--amber); }
-  .type-permit   { background: var(--red-bg);     color: var(--red); }
-  .type-note     { background: var(--paper2);     color: var(--ink2); }
-  .type-change   { background: var(--red-bg);     color: var(--red); }
+.type-badge {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  padding: 2px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.type-bid      { background: var(--blue-bg);   color: var(--blue); }
+.type-email    { background: var(--purple-bg);  color: var(--purple); }
+.type-text     { background: var(--green-bg);   color: var(--green); }
+.type-invoice  { background: var(--amber-bg);   color: var(--amber); }
+.type-change   { background: var(--red-bg);     color: var(--red); }
+.type-permit   { background: var(--red-bg);     color: var(--red); }
+.type-note     { background: var(--paper2);     color: var(--ink2); }
 
-  .doc-body { min-width: 0; }
-  .doc-from { font-size: 12px; font-weight: 500; color: var(--ink); margin-bottom: 3px; }
-  .doc-summary { font-size: 12px; color: var(--ink2); line-height: 1.55; }
-  .doc-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-  .doc-tag {
-    font-size: 10px; padding: 2px 7px; border-radius: 2px;
-    background: var(--paper2); color: var(--ink3); letter-spacing: 0.04em;
-  }
-  .doc-tag.urgent { background: var(--red-bg); color: var(--red); }
-  .doc-tag.action { background: var(--amber-bg); color: var(--amber); }
+.doc-from {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.doc-amount {
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  font-weight: 300;
+  color: var(--ink);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.doc-summary {
+  font-size: 12px;
+  color: var(--ink2);
+  line-height: 1.55;
+  margin-bottom: 8px;
+}
+.doc-action {
+  font-size: 11px;
+  color: var(--amber);
+  margin-bottom: 8px;
+}
+.doc-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.doc-tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: var(--paper2);
+  color: var(--ink3);
+}
+.doc-tag.urgent { background: var(--red-bg); color: var(--red); }
+.doc-tag.action { background: var(--amber-bg); color: var(--amber); }
+.doc-date { font-size: 10px; color: var(--ink3); margin-left: auto; }
 
-  .doc-meta { text-align: right; white-space: nowrap; }
-  .doc-amount { font-size: 14px; font-weight: 500; color: var(--ink); font-family: 'Fraunces', serif; }
-  .doc-date { font-size: 10px; color: var(--ink3); margin-top: 3px; }
-  .doc-job { font-size: 10px; color: var(--ink3); margin-top: 2px; }
+/* Query result card */
+.query-card {
+  background: var(--amber-bg);
+  border: 1px solid #e8c87a;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  animation: cardIn 0.25s ease;
+  flex-shrink: 0;
+}
+.query-q { font-weight: 500; margin-bottom: 6px; font-size: 12px; color: var(--ink3); }
 
-  /* Summary bar */
-  .summary-bar {
-    background: var(--paper2); border-top: 1px solid var(--rule);
-    padding: 12px 24px; display: flex; gap: 16px; overflow-x: auto;
-  }
-  .summary-card {
-    background: white; border: 1px solid var(--rule); border-radius: 5px;
-    padding: 10px 14px; min-width: 140px; flex-shrink: 0;
-  }
-  .summary-label { font-size: 10px; color: var(--ink3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
-  .summary-value { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 300; color: var(--ink); }
-  .summary-sub { font-size: 10px; color: var(--ink3); margin-top: 2px; }
+/* ── Input area ── */
+.input-area {
+  background: var(--ink);
+  padding: 12px 12px calc(12px + var(--safe-bottom));
+  flex-shrink: 0;
+}
 
-  /* Inbox / input area */
-  .inbox-area {
-    border-top: 2px solid var(--ink);
-    background: var(--ink);
-    display: flex; flex-direction: column;
-    padding: 14px 20px 14px;
-  }
+.input-mode-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.mode-btn {
+  flex: 1;
+  padding: 7px 4px;
+  border-radius: 6px;
+  border: 1px solid #3a3530;
+  background: #2a2520;
+  color: #666;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.mode-btn-icon { font-size: 16px; }
+.mode-btn.active {
+  background: #3a3530;
+  border-color: var(--amber);
+  color: var(--amber);
+}
 
-  .inbox-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .inbox-label { font-size: 10px; color: #666; letter-spacing: 0.1em; text-transform: uppercase; }
-  .job-selector {
-    background: #2a2520; border: 1px solid #444; border-radius: 4px;
-    color: var(--paper); font-family: 'DM Mono', monospace; font-size: 11px;
-    padding: 4px 8px; outline: none; cursor: pointer;
-  }
-  .job-selector option { background: #2a2520; }
+.textarea-wrap { position: relative; margin-bottom: 8px; }
+.main-textarea {
+  width: 100%;
+  background: #2a2520;
+  border: 1px solid #3a3530;
+  border-radius: 10px;
+  color: var(--paper);
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 12px 14px;
+  resize: none;
+  outline: none;
+  min-height: 80px;
+  max-height: 160px;
+  transition: border-color 0.15s;
+  display: block;
+}
+.main-textarea::placeholder { color: #444; }
+.main-textarea:focus { border-color: var(--amber); }
 
-  .inbox-input-row { display: flex; gap: 10px; align-items: flex-end; }
-  .inbox-textarea {
-    flex: 1; background: #2a2520; border: 1px solid #3a3530;
-    border-radius: 5px; color: var(--paper); font-family: 'DM Mono', monospace;
-    font-size: 12px; padding: 10px 12px; resize: none; outline: none;
-    line-height: 1.5; min-height: 64px; max-height: 64px;
-    transition: border-color 0.2s;
-  }
-  .inbox-textarea::placeholder { color: #555; }
-  .inbox-textarea:focus { border-color: var(--amber); }
+.input-bottom-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-  .inbox-actions { display: flex; flex-direction: column; gap: 6px; }
-  .inbox-btn {
-    padding: 8px 16px; border-radius: 4px; font-family: 'DM Mono', monospace;
-    font-size: 11px; cursor: pointer; border: none; letter-spacing: 0.04em;
-    white-space: nowrap; transition: all 0.15s;
-  }
-  .btn-primary { background: var(--amber); color: white; font-weight: 500; }
-  .btn-primary:hover { background: #b36a09; }
-  .btn-primary:disabled { opacity: 0.4; cursor: default; }
-  .btn-secondary { background: #2a2520; color: #888; border: 1px solid #3a3530; }
-  .btn-secondary:hover { color: var(--paper); border-color: #555; }
+.attach-btn {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  border: 1px solid #3a3530;
+  background: #2a2520;
+  color: #666;
+  font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
 
-  .processing { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #666; padding: 4px 0; }
-  .processing-dots span { animation: blink 1.2s infinite; }
-  .processing-dots span:nth-child(2) { animation-delay: 0.2s; }
-  .processing-dots span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes blink { 0%,60%,100%{opacity:0.2} 30%{opacity:1} }
+.char-hint {
+  flex: 1;
+  font-size: 10px;
+  color: #444;
+  line-height: 1.4;
+}
 
-  /* Modal */
-  .modal-bg {
-    display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.7);
-    align-items: center; justify-content: center; z-index: 100;
-  }
-  .modal-bg.open { display: flex; }
-  .modal {
-    background: white; border-radius: 8px; padding: 24px; width: 400px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  }
-  .modal h3 { font-family: 'Fraunces', serif; font-weight: 300; font-size: 18px; margin-bottom: 16px; }
-  .modal input {
-    width: 100%; padding: 9px 12px; border: 1px solid var(--rule); border-radius: 4px;
-    font-family: 'DM Mono', monospace; font-size: 13px; outline: none; margin-bottom: 12px;
-  }
-  .modal input:focus { border-color: var(--ink); }
-  .modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
-  .modal-btn { padding: 8px 16px; border-radius: 4px; font-family: 'DM Mono', monospace; font-size: 12px; cursor: pointer; border: 1px solid var(--rule); background: none; }
-  .modal-btn.primary { background: var(--ink); color: white; border-color: var(--ink); }
+.send-btn {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  border: none;
+  background: var(--amber);
+  color: white;
+  font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+.send-btn:disabled { opacity: 0.35; }
+.send-btn:not(:disabled):active { opacity: 0.8; }
 
-  /* Empty state */
-  .empty-state { text-align: center; padding: 60px 20px; color: var(--ink3); }
-  .empty-state .big { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 300; color: var(--rule); margin-bottom: 8px; }
+.processing-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 11px;
+  color: #555;
+}
+.dots span { animation: blink 1.2s infinite; }
+.dots span:nth-child(2) { animation-delay: 0.2s; }
+.dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%,60%,100%{opacity:0.15} 30%{opacity:1} }
 
-  /* Query results */
-  .query-result {
-    background: var(--amber-bg); border: 1px solid #e8c87a; border-radius: 6px;
-    padding: 14px 16px; font-size: 12px; color: var(--ink); line-height: 1.6;
-  }
-  .query-result strong { color: var(--amber); }
+/* ── JOBS screen ── */
+.jobs-screen { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.jobs-inner { padding: 16px; }
+.section-label {
+  font-size: 10px;
+  color: var(--ink3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.job-card {
+  background: white;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.job-card:active { background: var(--paper2); }
+.job-card.selected { border-color: var(--amber); }
+.job-card-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.job-card-info { flex: 1; min-width: 0; }
+.job-card-name { font-size: 14px; font-weight: 500; }
+.job-card-client { font-size: 12px; color: var(--ink3); margin-top: 2px; }
+.job-card-count { font-size: 12px; color: var(--ink3); }
+.job-card-check { font-size: 18px; color: var(--amber); }
+
+.add-job-card {
+  background: none;
+  border: 1px dashed var(--rule);
+  border-radius: 10px;
+  padding: 14px 16px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink3);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+/* Stats row on jobs screen */
+.stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.stat-card {
+  background: white;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.stat-label { font-size: 10px; color: var(--ink3); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 4px; }
+.stat-value { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 300; }
+.stat-sub { font-size: 10px; color: var(--ink3); margin-top: 2px; }
+
+/* ── Modal ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(26,24,20,0.75);
+  z-index: 200;
+  align-items: flex-end;
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  background: var(--paper);
+  border-radius: 16px 16px 0 0;
+  padding: 20px 20px calc(20px + var(--safe-bottom));
+  width: 100%;
+  animation: sheetUp 0.25s ease;
+}
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal-handle {
+  width: 36px; height: 4px;
+  border-radius: 2px;
+  background: var(--rule);
+  margin: 0 auto 16px;
+}
+.modal-title {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  font-weight: 300;
+  margin-bottom: 14px;
+}
+.modal-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  background: white;
+  color: var(--ink);
+  outline: none;
+  margin-bottom: 10px;
+}
+.modal-input:focus { border-color: var(--ink); }
+.modal-btns { display: flex; gap: 8px; }
+.modal-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid var(--rule);
+  background: none;
+  color: var(--ink);
+}
+.modal-btn.primary {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
 </style>
 </head>
 <body>
-<div class="app">
+
+<div class="shell">
 
   <!-- Header -->
   <header class="header">
     <div class="logo">Field<span>Stack</span></div>
-    <div class="header-meta">GC COMMAND CENTER · DEMO</div>
+    <div class="job-pill" onclick="switchTab('jobs')">
+      <div class="job-pill-dot" id="active-dot"></div>
+      <span class="job-pill-name" id="active-job-name">Select a job</span>
+      <span class="job-pill-arrow">▾</span>
+    </div>
+    <button class="header-icon-btn" onclick="switchTab('jobs')">
+      ≡
+      <div class="notif-badge" id="notif-badge"></div>
+    </button>
   </header>
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-label">Active Jobs</div>
-      <div class="job-list" id="job-list"></div>
-      <button class="add-job-btn" onclick="openAddJob()">+ new job</button>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Filter by type</div>
-      <div class="filter-list" id="filter-list">
-        <div class="filter-item active" data-type="all" onclick="setFilter('all', this)">
-          <div class="filter-dot" style="background:var(--ink2)"></div> All documents
-        </div>
-        <div class="filter-item" data-type="bid" onclick="setFilter('bid', this)">
-          <div class="filter-dot" style="background:var(--blue)"></div> Bids
-        </div>
-        <div class="filter-item" data-type="email" onclick="setFilter('email', this)">
-          <div class="filter-dot" style="background:var(--purple)"></div> Emails
-        </div>
-        <div class="filter-item" data-type="text" onclick="setFilter('text', this)">
-          <div class="filter-dot" style="background:var(--green)"></div> Texts
-        </div>
-        <div class="filter-item" data-type="invoice" onclick="setFilter('invoice', this)">
-          <div class="filter-dot" style="background:var(--amber)"></div> Invoices
-        </div>
-        <div class="filter-item" data-type="change" onclick="setFilter('change', this)">
-          <div class="filter-dot" style="background:var(--red)"></div> Change orders
-        </div>
-        <div class="filter-item" data-type="note" onclick="setFilter('note', this)">
-          <div class="filter-dot" style="background:var(--ink3)"></div> Notes
-        </div>
+  <!-- Tab bar -->
+  <nav class="tabs">
+    <button class="tab active" id="tab-inbox" onclick="switchTab('inbox')">
+      <span class="tab-icon">📥</span>inbox
+    </button>
+    <button class="tab" id="tab-jobs" onclick="switchTab('jobs')">
+      <span class="tab-icon">🏗</span>jobs
+    </button>
+  </nav>
+
+  <!-- INBOX screen -->
+  <div class="screen inbox-screen active" id="screen-inbox">
+    <div class="feed" id="feed">
+      <div class="feed-empty" id="feed-empty">
+        <div class="feed-empty-icon">📋</div>
+        <div class="feed-empty-text">Drop anything in below —<br>bids, emails, texts, invoices.<br>Claude reads and files it.</div>
       </div>
     </div>
-  </aside>
 
-  <!-- Main -->
-  <main class="main">
-    <div class="doc-feed" id="doc-feed">
-      <div class="feed-header">
-        <div class="feed-title" id="feed-title">All Jobs</div>
-        <div class="feed-count" id="feed-count">0 documents</div>
+    <div class="input-area">
+      <!-- Mode selector -->
+      <div class="input-mode-row">
+        <button class="mode-btn active" id="mode-file" onclick="setMode('file', this)">
+          <span class="mode-btn-icon">📄</span>file
+        </button>
+        <button class="mode-btn" id="mode-paste" onclick="setMode('paste', this)">
+          <span class="mode-btn-icon">📋</span>paste
+        </button>
+        <button class="mode-btn" id="mode-ask" onclick="setMode('ask', this)">
+          <span class="mode-btn-icon">💬</span>ask
+        </button>
       </div>
-      <div id="doc-list"></div>
-    </div>
 
-    <div class="summary-bar" id="summary-bar"></div>
-  </main>
-
-</div>
-
-<!-- Inbox overlay at bottom of main -->
-<div style="position:fixed; bottom:0; left:260px; right:0; z-index:50;">
-  <div class="inbox-area">
-    <div class="inbox-top">
-      <div class="inbox-label">Drop anything in</div>
-      <select class="job-selector" id="job-selector">
-        <option value="all">— select job —</option>
-      </select>
-      <div class="inbox-label" style="margin-left:auto">paste email, text, bid, note, invoice...</div>
-    </div>
-    <div class="inbox-input-row">
-      <textarea class="inbox-textarea" id="inbox-input" placeholder="Paste anything here — an email from your client, a sub's bid, a text message, a note from the job site..."></textarea>
-      <div class="inbox-actions">
-        <button class="inbox-btn btn-primary" id="process-btn" onclick="processInput()">Process →</button>
-        <button class="inbox-btn btn-secondary" onclick="askQuestion()">Ask a question</button>
+      <!-- Text area -->
+      <div class="textarea-wrap">
+        <textarea
+          class="main-textarea"
+          id="main-input"
+          placeholder="Paste a bid, email, text, invoice, or note…"
+          oninput="onInput()"
+        ></textarea>
       </div>
-    </div>
-    <div class="processing" id="processing" style="display:none">
-      <span>Claude is reading this</span>
-      <span class="processing-dots"><span>.</span><span>.</span><span>.</span></span>
+
+      <!-- Bottom row -->
+      <div class="input-bottom-row">
+        <button class="attach-btn" onclick="triggerFileInput()" title="Attach PDF">📎</button>
+        <input type="file" id="file-input" accept=".pdf,.txt,.eml" style="display:none" onchange="handleFile(event)">
+        <div class="char-hint" id="char-hint">Select a job first, then paste anything here</div>
+        <button class="send-btn" id="send-btn" onclick="handleSend()" disabled>↑</button>
+      </div>
+
+      <div class="processing-row" id="processing" style="display:none">
+        <span>Claude is reading this</span>
+        <span class="dots"><span>.</span><span>.</span><span>.</span></span>
+      </div>
     </div>
   </div>
+
+  <!-- JOBS screen -->
+  <div class="screen jobs-screen" id="screen-jobs">
+    <div class="jobs-inner">
+      <div class="stats-row" id="stats-row"></div>
+      <div class="section-label">Active jobs</div>
+      <div id="job-list-ui"></div>
+      <button class="add-job-card" onclick="openModal()">＋ add new job</button>
+    </div>
+  </div>
+
 </div>
 
 <!-- Add job modal -->
-<div class="modal-bg" id="modal">
-  <div class="modal">
-    <h3>New job</h3>
-    <input type="text" id="job-name-input" placeholder="Job name (e.g. Miller Residence — Kitchen)">
-    <input type="text" id="job-client-input" placeholder="Client name">
+<div class="modal-overlay" id="modal" onclick="closeModalOnBg(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">New job</div>
+    <input class="modal-input" id="modal-job" placeholder="Job name (e.g. Miller Kitchen)">
+    <input class="modal-input" id="modal-client" placeholder="Client name">
     <div class="modal-btns">
       <button class="modal-btn" onclick="closeModal()">Cancel</button>
       <button class="modal-btn primary" onclick="addJob()">Add job</button>
@@ -327,298 +625,273 @@
 </div>
 
 <script>
-const SYSTEM_PROMPT = `You are an AI assistant for a general contractor. Your job is to read any document a GC pastes in — emails, text messages, subcontractor bids, invoices, change order requests, permit notices, notes — and extract the key information.
-
-Always respond with ONLY a valid JSON object (no markdown, no explanation) in this exact format:
-{
-  "type": "bid|email|text|invoice|change|permit|note",
-  "from": "person or company name, or 'Unknown'",
-  "summary": "2-3 sentence plain English summary of what this document says and what action (if any) is needed",
-  "amount": "dollar amount if present, null if none",
-  "date": "relevant date if present, null if none",
-  "tags": ["array", "of", "relevant", "tags"],
-  "urgent": true/false,
-  "action_required": true/false,
-  "action_note": "what action is needed, or null"
-}
-
-Types: bid = subcontractor bid/quote, email = client or vendor email, text = text message, invoice = invoice or bill, change = change order request, permit = permit or inspection, note = job site note or memo.
-Tags should be short keywords like: "electrical", "plumbing", "framing", "client", "sub", "payment", "deadline", "open item".`;
-
+// ── State ──
+const JOB_COLORS = ['#c8760a','#2d6a4f','#1a4f7a','#9b2335','#4a2d7a','#5a6a2d'];
 let jobs = [
-  { id: 'j1', name: 'Miller Residence', client: 'Tom Miller' },
-  { id: 'j2', name: 'Lakeside Addition', client: 'Sarah Chen' }
+  { id:'j1', name:'Miller Residence', client:'Tom Miller', color: JOB_COLORS[0] },
+  { id:'j2', name:'Lakeside Addition', client:'Sarah Chen',  color: JOB_COLORS[1] }
 ];
 let docs = [];
-let activeJob = 'all';
-let activeFilter = 'all';
+let activeJobId = null;
+let currentMode = 'file';
+let processing = false;
 
-// --- Simulated Claude responses for demo ---
-const DEMO_RESPONSES = [
-  {
-    triggers: ['bid', 'quote', 'per your request', 'pleased to submit', 'scope of work', 'proposal'],
-    response: { type: 'bid', from: 'Apex Electrical', summary: 'Apex Electrical submitted a bid for the full electrical scope. Includes panel upgrade, rough-in for kitchen and two bathrooms, and exterior lighting. Price is firm through end of month.', amount: '$18,400', date: 'Valid through Oct 31', tags: ['electrical', 'sub', 'bid'], urgent: false, action_required: true, action_note: 'Review and compare against other electrical bids before end of month.' }
-  },
-  {
-    triggers: ['invoice', 'payment due', 'balance', 'amount due', 'please remit'],
-    response: { type: 'invoice', from: 'North Shore Plumbing', summary: 'Invoice for rough-in plumbing completed last week. Work covers first floor bath and kitchen supply lines. Payment due net 30.', amount: '$6,850', date: 'Due Nov 15', tags: ['plumbing', 'payment', 'sub'], urgent: false, action_required: true, action_note: 'Schedule payment before Nov 15.' }
-  },
-  {
-    triggers: ['change order', 'additional work', 'scope change', 'not included', 'extra'],
-    response: { type: 'change', from: 'Client', summary: 'Client is requesting addition of a mudroom bench with built-in storage, not in original scope. Wants it completed before winter. Needs pricing and timeline response.', amount: null, date: null, tags: ['client', 'change order', 'carpentry', 'open item'], urgent: true, action_required: true, action_note: 'Price out mudroom bench addition and respond to client within 48 hours.' }
-  },
-  {
-    triggers: ['inspection', 'permit', 'city', 'violation', 'code'],
-    response: { type: 'permit', from: 'Village of Winnetka', summary: 'Framing inspection passed with one note: fire blocking required at stair opening before drywall. Re-inspection can be scheduled online. No stop-work order issued.', amount: null, date: 'Re-inspect before Nov 8', tags: ['permit', 'inspection', 'framing', 'deadline'], urgent: true, action_required: true, action_note: 'Install fire blocking at stair opening and schedule re-inspection before Nov 8.' }
-  },
-  {
-    triggers: ['hey', 'call me', 'text', 'just wanted', 'quick question', 'when', 'following up'],
-    response: { type: 'text', from: 'Tom Miller', summary: 'Client following up on tile selection for master bath. Wants to know if the samples came in and when they can stop by to decide. No urgency but needs a response today.', amount: null, date: null, tags: ['client', 'tile', 'open item'], urgent: false, action_required: true, action_note: 'Confirm tile sample arrival and schedule client walk-through this week.' }
-  },
-  {
-    triggers: ['note', 'walked', 'site visit', 'today', 'noticed', 'issue', 'problem'],
-    response: { type: 'note', from: 'Site visit', summary: 'Site note from today: HVAC rough-in is ahead of schedule. Minor issue with window rough opening on north wall — 2 inches off from plan, needs framing adjustment before windows arrive Friday.', amount: null, date: 'Window delivery Friday', tags: ['hvac', 'framing', 'windows', 'deadline'], urgent: true, action_required: true, action_note: 'Fix north wall rough opening before window delivery Friday.' }
-  }
+// ── Demo response engine ──
+const DEMOS = [
+  { triggers:['bid','quote','pleased to submit','proposal','scope of work','per your request'],
+    make: () => ({ type:'bid', from:'Apex Electrical', summary:'Full electrical scope bid including panel upgrade, kitchen rough-in, and exterior lighting. Price firm through end of month.', amount:'$18,400', date:'Valid thru Oct 31', tags:['electrical','sub'], urgent:false, action_required:true, action_note:'Compare against other electrical bids before Oct 31.' }) },
+  { triggers:['invoice','payment due','amount due','please remit','balance'],
+    make: () => ({ type:'invoice', from:'North Shore Plumbing', summary:'Invoice for first-floor rough-in plumbing completed last week. Covers kitchen supply lines and bath. Net 30 terms.', amount:'$6,850', date:'Due Nov 15', tags:['plumbing','payment'], urgent:false, action_required:true, action_note:'Schedule payment before Nov 15.' }) },
+  { triggers:['change order','additional work','not in scope','scope change','extra','add on'],
+    make: () => ({ type:'change', from:'Client', summary:'Client requesting mudroom bench with built-in storage — not in original scope. Wants pricing and timeline before winter.', amount:null, date:null, tags:['client','scope'], urgent:true, action_required:true, action_note:'Price mudroom addition and respond within 48 hrs.' }) },
+  { triggers:['inspection','permit','city','violation','code','fire blocking'],
+    make: () => ({ type:'permit', from:'Village of Winnetka', summary:'Framing inspection passed. One note: fire blocking required at stair opening before drywall. Re-inspection can be scheduled online.', amount:null, date:'Re-inspect by Nov 8', tags:['permit','framing'], urgent:true, action_required:true, action_note:'Install fire blocking and schedule re-inspection by Nov 8.' }) },
+  { triggers:['hey','following up','quick question','when will','can you call','tile','samples'],
+    make: () => ({ type:'text', from:'Tom Miller', summary:'Client following up on master bath tile samples. Wants to know when they can stop by to make final selection.', amount:null, date:null, tags:['client','tile'], urgent:false, action_required:true, action_note:'Confirm tile sample arrival and schedule client walk-through.' }) },
+  { triggers:['walked','site visit','today noticed','issue','problem','window','rough'],
+    make: () => ({ type:'note', from:'Site visit', summary:'HVAC rough-in ahead of schedule. North wall window rough opening 2 inches off plan — framing adjustment needed before window delivery Friday.', amount:null, date:'Windows arrive Friday', tags:['framing','windows'], urgent:true, action_required:true, action_note:'Fix north wall rough opening before Friday delivery.' }) },
+  { triggers:['pdf','document','attached','file'],
+    make: () => ({ type:'bid', from:'Lakeside Millwork', summary:'Millwork package bid for kitchen cabinetry, island, and master bath vanity. Lead time 10 weeks from approval.', amount:'$34,200', date:'10-week lead time', tags:['millwork','cabinets'], urgent:false, action_required:true, action_note:'Approve to maintain schedule. 10-week lead is tight.' }) },
 ];
 
 function detectResponse(text) {
-  const lower = text.toLowerCase();
-  for (const demo of DEMO_RESPONSES) {
-    if (demo.triggers.some(t => lower.includes(t))) {
-      return demo.response;
-    }
+  const l = text.toLowerCase();
+  for (const d of DEMOS) {
+    if (d.triggers.some(t => l.includes(t))) return d.make();
   }
-  // Generic fallback
-  return {
-    type: 'note', from: 'Pasted document', summary: 'Document received and logged. Claude identified this as a general note or communication. Review and tag manually if needed.',
-    amount: null, date: null, tags: ['misc'], urgent: false, action_required: false, action_note: null
-  };
+  return { type:'note', from:'Pasted document', summary:'Document logged. Claude identified this as a general note or communication.', amount:null, date:null, tags:['misc'], urgent:false, action_required:false, action_note:null };
 }
 
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-async function processInput() {
-  const input = document.getElementById('inbox-input');
+// ── UI switching ──
+function switchTab(tab) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'jobs') renderJobsScreen();
+}
+
+function setMode(mode, el) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  const ta = document.getElementById('main-input');
+  const hint = document.getElementById('char-hint');
+  if (mode === 'file') {
+    ta.placeholder = 'Paste a bid, email, text, invoice, or note…';
+    hint.textContent = activeJobId ? 'Paste anything — Claude will classify and extract it' : 'Select a job first, then paste anything here';
+  } else if (mode === 'paste') {
+    ta.placeholder = 'Paste an email, text thread, or any document…';
+    hint.textContent = activeJobId ? 'Paste any text — email, text, permit notice…' : 'Select a job first';
+  } else {
+    ta.placeholder = 'Ask anything — "What bids are on file?" or "What's urgent?"';
+    hint.textContent = 'Ask a question about your jobs and docs';
+  }
+  onInput();
+}
+
+function onInput() {
+  const val = document.getElementById('main-input').value.trim();
+  document.getElementById('send-btn').disabled = !val || processing;
+}
+
+// ── Send ──
+async function handleSend() {
+  const input = document.getElementById('main-input');
   const text = input.value.trim();
-  if (!text) return;
+  if (!text || processing) return;
 
-  const jobId = document.getElementById('job-selector').value;
-  if (jobId === 'all') { alert('Please select a job first.'); return; }
+  if (currentMode === 'ask') {
+    await runQuery(text);
+  } else {
+    if (!activeJobId) {
+      switchTab('jobs');
+      return;
+    }
+    await runIngest(text);
+  }
+}
 
-  document.getElementById('process-btn').disabled = true;
+async function runIngest(text) {
+  processing = true;
+  document.getElementById('send-btn').disabled = true;
+  document.getElementById('main-input').value = '';
   document.getElementById('processing').style.display = 'flex';
-  input.value = '';
+  hideFeedEmpty();
+  onInput();
 
-  await delay(1200 + Math.random() * 600);
+  await delay(1000 + Math.random() * 600);
 
   const result = detectResponse(text);
-  const job = jobs.find(j => j.id === jobId);
-
-  const doc = {
-    id: 'doc_' + Date.now(),
-    jobId, jobName: job.name,
-    ...result,
-    raw: text,
-    createdAt: new Date()
-  };
-
+  const job = jobs.find(j => j.id === activeJobId);
+  const doc = { id:'d'+Date.now(), jobId: activeJobId, jobName: job.name, jobColor: job.color, createdAt: new Date(), ...result };
   docs.unshift(doc);
-  document.getElementById('processing').style.display = 'none';
-  document.getElementById('process-btn').disabled = false;
 
-  renderDocs();
-  renderSummary();
+  document.getElementById('processing').style.display = 'none';
+  processing = false;
+  onInput();
+
+  renderCard(doc);
+  updateNotifBadge();
 }
 
-async function askQuestion() {
-  const input = document.getElementById('inbox-input');
-  const q = input.value.trim();
-  if (!q) { input.placeholder = 'Type your question here...'; input.focus(); return; }
-  input.value = '';
-
-  document.getElementById('process-btn').disabled = true;
+async function runQuery(q) {
+  processing = true;
+  document.getElementById('send-btn').disabled = true;
+  document.getElementById('main-input').value = '';
   document.getElementById('processing').style.display = 'flex';
+  hideFeedEmpty();
+  onInput();
 
-  await delay(900 + Math.random() * 500);
+  await delay(800 + Math.random() * 500);
+
+  let answer = '';
+  const l = q.toLowerCase();
+  if (l.includes('bid') || l.includes('electrical') || l.includes('quote')) {
+    answer = 'Apex Electrical: $18,400 (valid thru Oct 31) · Lakeside Millwork: $34,200 (cabinets, 10-wk lead). No competing electrical bids on file.';
+  } else if (l.includes('urgent') || l.includes('critical') || l.includes('priority')) {
+    const u = docs.filter(d => d.urgent);
+    answer = u.length ? u.map(d => `· [${d.jobName}] ${d.action_note}`).join('\n') : 'No urgent items flagged right now.';
+  } else if (l.includes('action') || l.includes('outstanding') || l.includes('open')) {
+    const a = docs.filter(d => d.action_required);
+    answer = a.length ? a.map(d => `· ${d.action_note}`).join('\n') : 'No open action items.';
+  } else if (l.includes('invoice') || l.includes('payment') || l.includes('owe')) {
+    const inv = docs.filter(d => d.type === 'invoice' && d.amount);
+    answer = inv.length ? inv.map(d => `· ${d.from}: ${d.amount} (${d.date || 'no due date'})`).join('\n') : 'No invoices on file yet.';
+  } else {
+    answer = 'In the live version, Claude searches your full document history and answers directly. Try: "What bids are on file?", "What\'s urgent?", or "What invoices are outstanding?"';
+  }
 
   document.getElementById('processing').style.display = 'none';
-  document.getElementById('process-btn').disabled = false;
+  processing = false;
+  onInput();
 
-  // Simulate answer from existing docs
-  let answer = '';
-  const lower = q.toLowerCase();
-  if (lower.includes('bid') || lower.includes('electrical')) {
-    answer = 'Based on documents on file: <strong>Apex Electrical</strong> submitted a bid of <strong>$18,400</strong> for the full electrical scope, valid through Oct 31. No competing electrical bids logged yet.';
-  } else if (lower.includes('outstanding') || lower.includes('open') || lower.includes('action')) {
-    const actions = docs.filter(d => d.action_required).map(d => `• ${d.action_note}`).join('<br>');
-    answer = actions ? `Open action items across all jobs:<br><br>${actions}` : 'No open action items currently logged.';
-  } else if (lower.includes('urgent') || lower.includes('critical')) {
-    const urgent = docs.filter(d => d.urgent).map(d => `• [${d.jobName}] ${d.summary}`).join('<br>');
-    answer = urgent ? `Urgent items:<br><br>${urgent}` : 'No urgent items currently flagged.';
-  } else if (lower.includes('payment') || lower.includes('invoice') || lower.includes('owe')) {
-    const invoices = docs.filter(d => d.type === 'invoice' && d.amount);
-    answer = invoices.length ? invoices.map(d => `• ${d.from}: ${d.amount} (${d.date || 'no due date'})`).join('<br>') : 'No invoices on file yet.';
-  } else {
-    answer = 'I searched across all logged documents. In the live version, Claude would query the full document history and give you a specific answer. Try asking about bids, invoices, open items, or urgent flags.';
-  }
-
-  const resultEl = document.createElement('div');
-  resultEl.className = 'query-result';
-  resultEl.innerHTML = `<strong>Q: ${q}</strong><br><br>${answer}`;
-  resultEl.style.animation = 'slideIn 0.3s ease';
-
-  const feed = document.getElementById('doc-list');
-  feed.insertBefore(resultEl, feed.firstChild);
-  updateCounts();
+  const el = document.createElement('div');
+  el.className = 'query-card';
+  el.innerHTML = `<div class="query-q">Q: ${q}</div>${answer.replace(/\n/g,'<br>')}`;
+  const feed = document.getElementById('feed');
+  feed.insertBefore(el, feed.firstChild);
 }
 
-function renderJobs() {
-  const list = document.getElementById('job-list');
-  const sel = document.getElementById('job-selector');
+// ── Rendering ──
+function hideFeedEmpty() {
+  const e = document.getElementById('feed-empty');
+  if (e) e.remove();
+}
 
-  list.innerHTML = `<div class="job-item ${activeJob === 'all' ? 'active' : ''}" onclick="setActiveJob('all', this)">
-    <span class="job-name">All jobs</span>
-    <span class="job-count">${docs.length}</span>
-  </div>`;
-
-  sel.innerHTML = '<option value="all">— select job —</option>';
-
-  jobs.forEach(j => {
-    const count = docs.filter(d => d.jobId === j.id).length;
-    const isActive = activeJob === j.id;
-    list.innerHTML += `<div class="job-item ${isActive ? 'active' : ''}" onclick="setActiveJob('${j.id}', this)">
-      <span class="job-name">${j.name}</span>
-      <span class="job-count">${count}</span>
+function renderCard(doc) {
+  const el = document.createElement('div');
+  el.className = 'doc-card';
+  el.innerHTML = `
+    <div class="doc-card-top">
+      <div class="doc-card-left">
+        <span class="type-badge type-${doc.type}">${doc.type.toUpperCase()}</span>
+        <span class="doc-from">${doc.from}</span>
+      </div>
+      ${doc.amount ? `<span class="doc-amount">${doc.amount}</span>` : ''}
+    </div>
+    <div class="doc-summary">${doc.summary}</div>
+    ${doc.action_note ? `<div class="doc-action">→ ${doc.action_note}</div>` : ''}
+    <div class="doc-footer">
+      ${doc.urgent ? '<span class="doc-tag urgent">URGENT</span>' : ''}
+      ${doc.action_required ? '<span class="doc-tag action">ACTION</span>' : ''}
+      ${doc.tags.map(t=>`<span class="doc-tag">${t}</span>`).join('')}
+      <span class="doc-date" style="color:${doc.jobColor}">${doc.jobName}</span>
     </div>`;
-    sel.innerHTML += `<option value="${j.id}">${j.name}</option>`;
-  });
+  const feed = document.getElementById('feed');
+  feed.insertBefore(el, feed.firstChild);
 }
 
-function renderDocs() {
-  const filtered = docs.filter(d => {
-    const jobMatch = activeJob === 'all' || d.jobId === activeJob;
-    const typeMatch = activeFilter === 'all' || d.type === activeFilter;
-    return jobMatch && typeMatch;
-  });
-
-  const title = activeJob === 'all' ? 'All Jobs' : jobs.find(j => j.id === activeJob)?.name;
-  document.getElementById('feed-title').textContent = title;
-  document.getElementById('feed-count').textContent = `${filtered.length} document${filtered.length !== 1 ? 's' : ''}`;
-
-  const list = document.getElementById('doc-list');
-  if (filtered.length === 0) {
-    list.innerHTML = `<div class="empty-state"><div class="big">∅</div><div>No documents yet.<br>Paste anything below to get started.</div></div>`;
-    renderJobs();
-    return;
-  }
-
-  list.innerHTML = filtered.map(d => `
-    <div class="doc-card">
-      <div>
-        <span class="doc-type-badge type-${d.type}">${d.type.toUpperCase()}</span>
-      </div>
-      <div class="doc-body">
-        <div class="doc-from">${d.from}</div>
-        <div class="doc-summary">${d.summary}</div>
-        ${d.action_note ? `<div style="font-size:11px;color:var(--amber);margin-top:6px;">→ ${d.action_note}</div>` : ''}
-        <div class="doc-tags">
-          ${d.urgent ? '<span class="doc-tag urgent">URGENT</span>' : ''}
-          ${d.action_required ? '<span class="doc-tag action">ACTION NEEDED</span>' : ''}
-          ${d.tags.map(t => `<span class="doc-tag">${t}</span>`).join('')}
-        </div>
-      </div>
-      <div class="doc-meta">
-        ${d.amount ? `<div class="doc-amount">${d.amount}</div>` : ''}
-        ${d.date ? `<div class="doc-date">${d.date}</div>` : ''}
-        <div class="doc-job">${d.jobName}</div>
-        <div class="doc-date">${d.createdAt.toLocaleDateString('en-US', {month:'short', day:'numeric'})}</div>
-      </div>
-    </div>`).join('');
-
-  renderJobs();
-}
-
-function renderSummary() {
-  const relevant = activeJob === 'all' ? docs : docs.filter(d => d.jobId === activeJob);
-  const urgent = relevant.filter(d => d.urgent).length;
-  const actions = relevant.filter(d => d.action_required).length;
-  const bids = relevant.filter(d => d.type === 'bid');
-  const bidTotal = bids.reduce((s, d) => s + (parseFloat((d.amount || '0').replace(/[$,]/g, '')) || 0), 0);
-  const invoices = relevant.filter(d => d.type === 'invoice');
-  const invoiceTotal = invoices.reduce((s, d) => s + (parseFloat((d.amount || '0').replace(/[$,]/g, '')) || 0), 0);
-
-  document.getElementById('summary-bar').innerHTML = `
-    <div class="summary-card">
-      <div class="summary-label">Documents</div>
-      <div class="summary-value">${relevant.length}</div>
-      <div class="summary-sub">across ${activeJob === 'all' ? jobs.length + ' jobs' : '1 job'}</div>
+function renderJobsScreen() {
+  // Stats
+  const urgent = docs.filter(d=>d.urgent).length;
+  const actions = docs.filter(d=>d.action_required).length;
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Documents</div>
+      <div class="stat-value">${docs.length}</div>
+      <div class="stat-sub">across all jobs</div>
     </div>
-    <div class="summary-card">
-      <div class="summary-label">Urgent</div>
-      <div class="summary-value" style="color:${urgent > 0 ? 'var(--red)' : 'var(--ink)'}">${urgent}</div>
-      <div class="summary-sub">need attention now</div>
-    </div>
-    <div class="summary-card">
-      <div class="summary-label">Action needed</div>
-      <div class="summary-value" style="color:${actions > 0 ? 'var(--amber)' : 'var(--ink)'}">${actions}</div>
-      <div class="summary-sub">open items</div>
-    </div>
-    ${bids.length ? `<div class="summary-card">
-      <div class="summary-label">Bids on file</div>
-      <div class="summary-value">$${bidTotal.toLocaleString()}</div>
-      <div class="summary-sub">${bids.length} bid${bids.length !== 1 ? 's' : ''} received</div>
-    </div>` : ''}
-    ${invoices.length ? `<div class="summary-card">
-      <div class="summary-label">Invoices due</div>
-      <div class="summary-value">$${invoiceTotal.toLocaleString()}</div>
-      <div class="summary-sub">${invoices.length} invoice${invoices.length !== 1 ? 's' : ''}</div>
-    </div>` : ''}
-  `;
+    <div class="stat-card">
+      <div class="stat-label">Action needed</div>
+      <div class="stat-value" style="color:${actions>0?'var(--amber)':'var(--ink)'}">${actions}</div>
+      <div class="stat-sub">${urgent} urgent</div>
+    </div>`;
+
+  // Job list
+  const list = document.getElementById('job-list-ui');
+  list.innerHTML = jobs.map((j,i) => {
+    const count = docs.filter(d=>d.jobId===j.id).length;
+    const isActive = j.id === activeJobId;
+    return `<div class="job-card ${isActive?'selected':''}" onclick="selectJob('${j.id}')">
+      <div class="job-card-dot" style="background:${j.color}"></div>
+      <div class="job-card-info">
+        <div class="job-card-name">${j.name}</div>
+        <div class="job-card-client">${j.client}</div>
+      </div>
+      <div class="job-card-count">${count} doc${count!==1?'s':''}</div>
+      ${isActive ? '<div class="job-card-check">✓</div>' : ''}
+    </div>`;
+  }).join('');
 }
 
-function setActiveJob(id, el) {
-  activeJob = id;
-  document.querySelectorAll('.job-item').forEach(e => e.classList.remove('active'));
-  el.classList.add('active');
-  renderDocs();
-  renderSummary();
+function selectJob(id) {
+  activeJobId = id;
+  const job = jobs.find(j=>j.id===id);
+  document.getElementById('active-job-name').textContent = job.name;
+  document.getElementById('active-dot').style.background = job.color;
+  renderJobsScreen();
+  setMode(currentMode, document.getElementById('mode-' + currentMode));
+  setTimeout(() => switchTab('inbox'), 200);
 }
 
-function setFilter(type, el) {
-  activeFilter = type;
-  document.querySelectorAll('.filter-item').forEach(e => e.classList.remove('active'));
-  el.classList.add('active');
-  renderDocs();
+function updateNotifBadge() {
+  const urgent = docs.filter(d=>d.urgent).length;
+  document.getElementById('notif-badge').classList.toggle('show', urgent > 0);
 }
 
-function updateCounts() {
-  document.getElementById('feed-count').textContent = `${document.querySelectorAll('.doc-card, .query-result').length} items`;
-  renderJobs();
+// ── File input ──
+function triggerFileInput() {
+  if (!activeJobId) { switchTab('jobs'); return; }
+  document.getElementById('file-input').click();
 }
 
-function openAddJob() { document.getElementById('modal').classList.add('open'); document.getElementById('job-name-input').focus(); }
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = '';
+  const ta = document.getElementById('main-input');
+  ta.value = `pdf ${file.name}`;
+  onInput();
+  handleSend();
+}
+
+// ── Modal ──
+function openModal() { document.getElementById('modal').classList.add('open'); setTimeout(()=>document.getElementById('modal-job').focus(),300); }
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function closeModalOnBg(e) { if (e.target === document.getElementById('modal')) closeModal(); }
 function addJob() {
-  const name = document.getElementById('job-name-input').value.trim();
-  const client = document.getElementById('job-client-input').value.trim();
+  const name = document.getElementById('modal-job').value.trim();
+  const client = document.getElementById('modal-client').value.trim();
   if (!name) return;
-  jobs.push({ id: 'j' + Date.now(), name, client: client || '' });
-  document.getElementById('job-name-input').value = '';
-  document.getElementById('job-client-input').value = '';
+  const color = JOB_COLORS[jobs.length % JOB_COLORS.length];
+  jobs.push({ id:'j'+Date.now(), name, client, color });
+  document.getElementById('modal-job').value = '';
+  document.getElementById('modal-client').value = '';
   closeModal();
-  renderJobs();
-  renderDocs();
-  renderSummary();
+  renderJobsScreen();
 }
 
-document.getElementById('inbox-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && e.metaKey) processInput();
+// ── Keyboard ──
+document.getElementById('main-input').addEventListener('keydown', e => {
+  if (e.key==='Enter' && (e.metaKey||e.ctrlKey)) handleSend();
 });
 
-// Init
-renderJobs();
-renderDocs();
-renderSummary();
+// ── Init ──
+renderJobsScreen();
+updateNotifBadge();
 </script>
 </body>
 </html>
