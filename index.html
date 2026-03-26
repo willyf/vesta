@@ -387,48 +387,17 @@ let activeJob = 'all';
 let activeFilter = 'all';
 
 // --- Simulated Claude responses for demo ---
-const DEMO_RESPONSES = [
-  {
-    triggers: ['bid', 'quote', 'per your request', 'pleased to submit', 'scope of work', 'proposal'],
-    response: { type: 'bid', from: 'Apex Electrical', summary: 'Apex Electrical submitted a bid for the full electrical scope. Includes panel upgrade, rough-in for kitchen and two bathrooms, and exterior lighting. Price is firm through end of month.', amount: '$18,400', date: 'Valid through Oct 31', tags: ['electrical', 'sub', 'bid'], urgent: false, action_required: true, action_note: 'Review and compare against other electrical bids before end of month.' }
-  },
-  {
-    triggers: ['invoice', 'payment due', 'balance', 'amount due', 'please remit'],
-    response: { type: 'invoice', from: 'North Shore Plumbing', summary: 'Invoice for rough-in plumbing completed last week. Work covers first floor bath and kitchen supply lines. Payment due net 30.', amount: '$6,850', date: 'Due Nov 15', tags: ['plumbing', 'payment', 'sub'], urgent: false, action_required: true, action_note: 'Schedule payment before Nov 15.' }
-  },
-  {
-    triggers: ['change order', 'additional work', 'scope change', 'not included', 'extra'],
-    response: { type: 'change', from: 'Client', summary: 'Client is requesting addition of a mudroom bench with built-in storage, not in original scope. Wants it completed before winter. Needs pricing and timeline response.', amount: null, date: null, tags: ['client', 'change order', 'carpentry', 'open item'], urgent: true, action_required: true, action_note: 'Price out mudroom bench addition and respond to client within 48 hours.' }
-  },
-  {
-    triggers: ['inspection', 'permit', 'city', 'violation', 'code'],
-    response: { type: 'permit', from: 'Village of Winnetka', summary: 'Framing inspection passed with one note: fire blocking required at stair opening before drywall. Re-inspection can be scheduled online. No stop-work order issued.', amount: null, date: 'Re-inspect before Nov 8', tags: ['permit', 'inspection', 'framing', 'deadline'], urgent: true, action_required: true, action_note: 'Install fire blocking at stair opening and schedule re-inspection before Nov 8.' }
-  },
-  {
-    triggers: ['hey', 'call me', 'text', 'just wanted', 'quick question', 'when', 'following up'],
-    response: { type: 'text', from: 'Tom Miller', summary: 'Client following up on tile selection for master bath. Wants to know if the samples came in and when they can stop by to decide. No urgency but needs a response today.', amount: null, date: null, tags: ['client', 'tile', 'open item'], urgent: false, action_required: true, action_note: 'Confirm tile sample arrival and schedule client walk-through this week.' }
-  },
-  {
-    triggers: ['note', 'walked', 'site visit', 'today', 'noticed', 'issue', 'problem'],
-    response: { type: 'note', from: 'Site visit', summary: 'Site note from today: HVAC rough-in is ahead of schedule. Minor issue with window rough opening on north wall — 2 inches off from plan, needs framing adjustment before windows arrive Friday.', amount: null, date: 'Window delivery Friday', tags: ['hvac', 'framing', 'windows', 'deadline'], urgent: true, action_required: true, action_note: 'Fix north wall rough opening before window delivery Friday.' }
-  }
-];
+// ── Real Claude API calls via /api/process ──
 
-function detectResponse(text) {
-  const lower = text.toLowerCase();
-  for (const demo of DEMO_RESPONSES) {
-    if (demo.triggers.some(t => lower.includes(t))) {
-      return demo.response;
-    }
-  }
-  // Generic fallback
-  return {
-    type: 'note', from: 'Pasted document', summary: 'Document received and logged. Claude identified this as a general note or communication. Review and tag manually if needed.',
-    amount: null, date: null, tags: ['misc'], urgent: false, action_required: false, action_note: null
-  };
+async function callAPI(text, mode) {
+  const res = await fetch('/api/process', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, mode })
+  });
+  if (!res.ok) throw new Error('API error ' + res.status);
+  return res.json();
 }
-
-function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 async function processInput() {
   if (currentInputMode === 'ask') { await askQuestion(); return; }
@@ -442,26 +411,28 @@ async function processInput() {
   document.getElementById('process-btn').disabled = true;
   document.getElementById('processing').style.display = 'flex';
   input.value = '';
+  input.style.height = '';
 
-  await delay(1200 + Math.random() * 600);
-
-  const result = detectResponse(text);
-  const job = jobs.find(j => j.id === jobId);
-
-  const doc = {
-    id: 'doc_' + Date.now(),
-    jobId, jobName: job.name,
-    ...result,
-    raw: text,
-    createdAt: new Date()
-  };
-
-  docs.unshift(doc);
-  document.getElementById('processing').style.display = 'none';
-  document.getElementById('process-btn').disabled = false;
-
-  renderDocs();
-  renderSummary();
+  try {
+    const result = await callAPI(text, 'ingest');
+    const job = jobs.find(j => j.id === jobId);
+    const doc = {
+      id: 'doc_' + Date.now(),
+      jobId, jobName: job.name,
+      ...result,
+      raw: text,
+      createdAt: new Date()
+    };
+    docs.unshift(doc);
+    renderDocs();
+    renderSummary();
+  } catch (err) {
+    alert('Something went wrong — check your connection and try again.');
+    console.error(err);
+  } finally {
+    document.getElementById('processing').style.display = 'none';
+    document.getElementById('process-btn').disabled = false;
+  }
 }
 
 async function askQuestion() {
@@ -469,31 +440,21 @@ async function askQuestion() {
   const q = input.value.trim();
   if (!q) { input.placeholder = 'Type your question here...'; input.focus(); return; }
   input.value = '';
+  input.style.height = '';
 
   document.getElementById('process-btn').disabled = true;
   document.getElementById('processing').style.display = 'flex';
 
-  await delay(900 + Math.random() * 500);
-
-  document.getElementById('processing').style.display = 'none';
-  document.getElementById('process-btn').disabled = false;
-
-  // Simulate answer from existing docs
   let answer = '';
-  const lower = q.toLowerCase();
-  if (lower.includes('bid') || lower.includes('electrical')) {
-    answer = 'Based on documents on file: <strong>Apex Electrical</strong> submitted a bid of <strong>$18,400</strong> for the full electrical scope, valid through Oct 31. No competing electrical bids logged yet.';
-  } else if (lower.includes('outstanding') || lower.includes('open') || lower.includes('action')) {
-    const actions = docs.filter(d => d.action_required).map(d => `• ${d.action_note}`).join('<br>');
-    answer = actions ? `Open action items across all jobs:<br><br>${actions}` : 'No open action items currently logged.';
-  } else if (lower.includes('urgent') || lower.includes('critical')) {
-    const urgent = docs.filter(d => d.urgent).map(d => `• [${d.jobName}] ${d.summary}`).join('<br>');
-    answer = urgent ? `Urgent items:<br><br>${urgent}` : 'No urgent items currently flagged.';
-  } else if (lower.includes('payment') || lower.includes('invoice') || lower.includes('owe')) {
-    const invoices = docs.filter(d => d.type === 'invoice' && d.amount);
-    answer = invoices.length ? invoices.map(d => `• ${d.from}: ${d.amount} (${d.date || 'no due date'})`).join('<br>') : 'No invoices on file yet.';
-  } else {
-    answer = 'I searched across all logged documents. In the live version, Claude would query the full document history and give you a specific answer. Try asking about bids, invoices, open items, or urgent flags.';
+  try {
+    const data = await callAPI(q, 'ask');
+    answer = data.answer || 'No response.';
+  } catch (err) {
+    answer = 'Something went wrong — try again.';
+    console.error(err);
+  } finally {
+    document.getElementById('processing').style.display = 'none';
+    document.getElementById('process-btn').disabled = false;
   }
 
   const resultEl = document.createElement('div');
