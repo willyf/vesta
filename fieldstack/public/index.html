@@ -390,10 +390,14 @@ let activeFilter = 'all';
 // ── Real Claude API calls via /api/process ──
 
 async function callAPI(text, mode) {
+  const context = mode === 'ask'
+    ? docs.map(d => `[${d.type.toUpperCase()}] From: ${d.from} — ${d.summary}${d.amount ? ' Amount: ' + d.amount : ''}${d.action_note ? ' Action needed: ' + d.action_note : ''}`).join('\n')
+    : null;
+
   const res = await fetch('/api/process', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text, mode })
+    body: JSON.stringify({ text, mode, context })
   });
   if (!res.ok) throw new Error('API error ' + res.status);
   return res.json();
