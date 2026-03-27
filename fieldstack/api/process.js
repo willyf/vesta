@@ -44,14 +44,14 @@ export default async function handler(req) {
   }
 
   try {
-    const { text, mode } = await req.json();
+    const { text, mode, context } = await req.json();
 
     if (!text || !text.trim()) {
       return new Response(JSON.stringify({ error: 'No text provided' }), { status: 400, headers });
     }
 
     const userMessage = mode === 'ask'
-      ? `The contractor is asking a question: "${text}"\n\nRespond helpfully in plain English. Keep it concise — 2-4 sentences. No JSON needed for questions.`
+      ? `The contractor is asking a question: "${text}"\n\nHere are the documents logged so far:\n${context || 'No documents logged yet.'}\n\nAnswer based on these documents. Be specific and concise — 2-4 sentences. No JSON needed.`
       : `Please read and extract information from this document:\n\n${text}`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
