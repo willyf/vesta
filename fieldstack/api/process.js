@@ -82,9 +82,10 @@ export default async function handler(req) {
       return new Response(JSON.stringify({ answer: content }), { status: 200, headers });
     }
 
-    // Parse JSON from Claude
+// Parse JSON from Claude
     try {
-      const parsed = JSON.parse(content);
+      const cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const parsed = JSON.parse(cleaned);
       return new Response(JSON.stringify(parsed), { status: 200, headers });
     } catch {
       // Claude returned something unparseable — wrap it as a note
