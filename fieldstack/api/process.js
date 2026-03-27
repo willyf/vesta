@@ -1,4 +1,4 @@
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 const SYSTEM_PROMPT = `You are an AI assistant for a general contractor. Your job is to read any document pasted in — emails, text messages, subcontractor bids, invoices, change order requests, permit notices, job site notes — and extract the key information.
 
